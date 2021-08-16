@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,10 +7,81 @@
   <title>Document</title>
 </head>
 <body>
+  <h2>Lista de Produtos</h2>
+  <ul id="productsList"></ul>
+
+  <hr>
+
+  <h2>Cadastrar Produtos</h2>
+  <form id="form">
+    <div>
+      <label for="name">Produto</label>
+      <input type="text" name="name" id="name" required>
+    </div>
+    <div>
+      <label for="brand">Marca</label>
+      <input type="text" name="brand" id="brand" required>
+    </div>
+    <div>
+      <label for="price">Preço</label>
+      <input type="text" name="price" id="price" required>
+    </div>
+    <div>
+      <button type="submit">Cadastrar</button>
+    </div>
+  </form>
+
   <script>
-    fetch("http://127.0.0.1:8080/api/products")
-      .then(response => response.json())
-      .then(console.log)
+    const productsList = document.querySelector("#productsList")
+    const form = document.querySelector("#form")
+
+    function refreshProducts() {
+      fetch("http://127.0.0.1:8080/api/products").then(response => {
+        response.json().then(data => {
+          const productsHtml = data.map(product => `
+            <li>
+              ${product.name} - ${product.brand} - ${product.price}
+            </li>
+          `).join('')
+          productsList.innerHTML = productsHtml
+        })
+      })
+    }
+
+    refreshProducts()
+
+    form.onsubmit = function(e) {
+      e.preventDefault()
+
+      const name = document.forms['form'].name.value
+      const brand = document.forms['form'].brand.value
+      const price = document.forms['form'].price.value
+
+      fetch("http://127.0.0.1:8080/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          brand,
+          price,
+        })
+      }).then(response => {
+        response.json().then(data => {
+          if(data.message === "Success") {
+            form.reset()
+            refreshProducts()
+            alert("Produto cadastrado com sucesso!")
+          } else {
+            alert("Opa! Houve um erro. Favor tentar novamente.")
+          }
+        })
+      })
+    }
+
+
   </script>
+
 </body>
 </html>
